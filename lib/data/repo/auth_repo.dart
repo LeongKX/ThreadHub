@@ -25,9 +25,18 @@ class AuthRepo {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> logout() {
-    return _auth.signOut();
-  }
+  Future<void> logout() => _auth.signOut();
 
   String? get currentUserId => _auth.currentUser?.uid;
+
+  /// NEW: Get current user's username from Firestore
+  Future<String?> get currentUsername async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+
+    final doc = await _users.doc(uid).get();
+    if (!doc.exists || doc.data() == null) return null;
+
+    return (doc.data()!['username'] ?? "Unknown") as String;
+  }
 }
