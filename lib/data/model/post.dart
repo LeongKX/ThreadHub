@@ -4,6 +4,7 @@ class Post {
   final String docId;
   final String title;
   final String content;
+  final String authorId;
   final String authorName; // add authorName
   final int upvotes;
   final int downvotes;
@@ -15,6 +16,7 @@ class Post {
     required this.docId,
     required this.title,
     required this.content,
+    required this.authorId,
     required this.authorName, // required
     required this.upvotes,
     required this.downvotes,
@@ -27,6 +29,7 @@ class Post {
     String? docId,
     String? title,
     String? content,
+    String? authorId,
     String? authorName,
     int? upvotes,
     int? downvotes,
@@ -38,6 +41,7 @@ class Post {
       docId: docId ?? this.docId,
       title: title ?? this.title,
       content: content ?? this.content,
+      authorId: authorId ?? this.authorId,
       authorName: authorName ?? this.authorName,
       upvotes: upvotes ?? this.upvotes,
       downvotes: downvotes ?? this.downvotes,
@@ -50,12 +54,14 @@ class Post {
   factory Post.create({
     required String title,
     required String content,
+    required String authorId,
     required String authorName,
   }) {
     return Post(
       docId: "",
       title: title,
       content: content,
+      authorId: authorId,
       authorName: authorName,
       upvotes: 0,
       downvotes: 0,
@@ -70,6 +76,7 @@ class Post {
       docId: docId,
       title: map['title'] ?? "",
       content: map['content'] ?? "",
+      authorId: map['authorId'] ?? "",
       authorName: map['authorName'] ?? "Unknown", // get from Firestore
       upvotes: map['upvotes'] ?? 0,
       downvotes: map['downvotes'] ?? 0,
@@ -83,6 +90,7 @@ class Post {
     return {
       'title': title,
       'content': content,
+      "authorId": authorId,
       'authorName': authorName, // save username
       'upvotes': upvotes,
       'downvotes': downvotes,

@@ -30,20 +30,25 @@ class _AddPostScreenState extends State<AddPostScreen> {
     setState(() => loading = true);
 
     try {
-      final username = await AuthRepo().currentUsername ?? "Unknown";
+      final auth = AuthRepo();
+      final authorId = auth.currentUserId;
+
+      if (authorId == null) {
+        throw Exception("User not logged in");
+      }
+
+      final username = await auth.getCurrentUsername();
 
       final post = Post.create(
         title: _title,
         content: _content,
-        authorName: username, // assign username
+        authorId: authorId,
+        authorName: username,
       );
 
-      // Add post to Firestore
       await repo.addPost(post);
 
-      if (mounted) {
-        context.pop(true); // close the AddPost screen
-      }
+      if (mounted) context.pop(true);
     } catch (e) {
       ScaffoldMessenger.of(
         context,

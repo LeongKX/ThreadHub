@@ -86,78 +86,86 @@ class _HomeScreenState extends State<HomeScreen> {
                         currentUserId,
                       );
 
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    post.authorName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                      return InkWell(
+                        onTap: () {
+                          context.push("/post/${post.docId}", extra: post);
+                        },
+                        child: Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      post.authorName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    formattedDate,
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
+                                    Text(
+                                      formattedDate,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                post.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(post.content),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.thumb_up, size: 18),
-                                    color: hasUpvoted ? Colors.green : null,
-                                    onPressed: () {
-                                      if (currentUserId != null) {
-                                        PostRepo().upvote(
-                                          post.docId,
-                                          currentUserId,
-                                        );
-                                      }
-                                    },
+                                const SizedBox(height: 6),
+                                Text(
+                                  post.title,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text(post.upvotes.toString()),
-                                  const SizedBox(width: 16),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.thumb_down,
-                                      size: 18,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(post.content),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.thumb_up,
+                                        size: 18,
+                                      ),
+                                      color: hasUpvoted ? Colors.green : null,
+                                      onPressed: () {
+                                        if (currentUserId != null) {
+                                          PostRepo().upvote(
+                                            post.docId,
+                                            currentUserId,
+                                          );
+                                        }
+                                      },
                                     ),
-                                    color: hasDownvoted ? Colors.red : null,
-                                    onPressed: () {
-                                      if (currentUserId != null) {
-                                        PostRepo().downvote(
-                                          post.docId,
-                                          currentUserId,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  Text(post.downvotes.toString()),
-                                ],
-                              ),
-                            ],
+                                    Text(post.upvotes.toString()),
+                                    const SizedBox(width: 16),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.thumb_down,
+                                        size: 18,
+                                      ),
+                                      color: hasDownvoted ? Colors.red : null,
+                                      onPressed: () {
+                                        if (currentUserId != null) {
+                                          PostRepo().downvote(
+                                            post.docId,
+                                            currentUserId,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    Text(post.downvotes.toString()),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );

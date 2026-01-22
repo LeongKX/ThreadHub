@@ -29,8 +29,19 @@ class PostRepo {
     await _collection.add(post.toMap());
   }
 
+  Future<void> updatePost(Post post) async {
+    await _collection.doc(post.docId).update(post.toMap());
+  }
+
   Future<void> deletePost(String docId) async {
     await _collection.doc(docId).delete();
+  }
+
+  Stream<Post?> getPostByIdStream(String docId) {
+    return _collection.doc(docId).snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return null;
+      return Post.fromMap(snapshot.data()!, snapshot.id);
+    });
   }
 
   /// Transactional upvote
