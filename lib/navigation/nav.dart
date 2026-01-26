@@ -1,15 +1,68 @@
+// import 'package:flutter/material.dart';
+// import 'package:go_router/go_router.dart';
+// import 'package:threadhub/data/model/post.dart';
+// import 'package:threadhub/ui/auth/signin.dart';
+// import 'package:threadhub/ui/auth/signup.dart';
+// import 'package:threadhub/ui/home/home.dart';
+// import 'package:threadhub/ui/post/add_post_screen.dart';
+// import 'package:threadhub/ui/post/post_detail_screen.dart';
+
+// class Nav {
+//   static const inintial = "/signup";
+//   static final routes = [
+//     GoRoute(
+//       path: "/signup",
+//       name: Screen.signup.name,
+//       builder: (context, state) => const SignupScreen(),
+//     ),
+//     GoRoute(
+//       path: "/signin",
+//       name: Screen.signin.name,
+//       builder: (context, state) => const SigninScreen(),
+//     ),
+//     GoRoute(
+//       path: "/home",
+//       name: Screen.home.name,
+//       builder: (context, state) => const HomeScreen(),
+//     ),
+//     GoRoute(
+//       path: "/addpost",
+//       name: Screen.addpost.name,
+//       builder: (context, state) => const AddPostScreen(),
+//     ),
+//     GoRoute(
+//       path: "/post/:postId",
+//       name: Screen.detailscreen.name,
+//       builder: (context, state) {
+//         final post = state.extra as Post?; // must pass the Post when navigating
+//         if (post == null) {
+//           return const Scaffold(body: Center(child: Text("Post not found")));
+//         }
+//         return PostDetailScreen(post: post);
+//       },
+//     ),
+//   ];
+// }
+
+// enum Screen { home, profile, signin, signup, addpost, detailscreen }
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:threadhub/data/model/post.dart';
+import 'package:threadhub/ui/utils/appshell.dart';
 import 'package:threadhub/ui/auth/signin.dart';
 import 'package:threadhub/ui/auth/signup.dart';
+import 'package:threadhub/ui/follow/follow.dart';
 import 'package:threadhub/ui/home/home.dart';
 import 'package:threadhub/ui/post/add_post_screen.dart';
 import 'package:threadhub/ui/post/post_detail_screen.dart';
+import 'package:threadhub/ui/profile/profile.dart';
 
 class Nav {
   static const inintial = "/signup";
+
   static final routes = [
+    /// AUTH (NO BOTTOM NAV)
     GoRoute(
       path: "/signup",
       name: Screen.signup.name,
@@ -20,21 +73,41 @@ class Nav {
       name: Screen.signin.name,
       builder: (context, state) => const SigninScreen(),
     ),
-    GoRoute(
-      path: "/home",
-      name: Screen.home.name,
-      builder: (context, state) => const HomeScreen(),
+
+    /// MAIN APP (WITH BOTTOM NAV)
+    ShellRoute(
+      builder: (context, state, child) {
+        return AppShell(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: "/home",
+          name: Screen.home.name,
+          builder: (context, state) => const HomeScreen(),
+        ),
+        // GoRoute(
+        //   path: "/follow",
+        //   builder: (context, state) => const FollowScreen(),
+        // ),
+        GoRoute(
+          path: "/profile",
+          name: Screen.profile.name,
+          builder: (context, state) => ProfileScreen(),
+        ),
+      ],
     ),
+
+    /// PAGES WITHOUT BOTTOM NAV (opened on top)
     GoRoute(
       path: "/addpost",
       name: Screen.addpost.name,
-      builder: (context, state) => const AddPostScreen(),
+      builder: (_, __) => const AddPostScreen(),
     ),
     GoRoute(
       path: "/post/:postId",
       name: Screen.detailscreen.name,
       builder: (context, state) {
-        final post = state.extra as Post?; // must pass the Post when navigating
+        final post = state.extra as Post?;
         if (post == null) {
           return const Scaffold(body: Center(child: Text("Post not found")));
         }
@@ -44,4 +117,4 @@ class Nav {
   ];
 }
 
-enum Screen { home, profile, signin, signup, addpost, detailscreen }
+enum Screen { home, follow, profile, signin, signup, addpost, detailscreen }
