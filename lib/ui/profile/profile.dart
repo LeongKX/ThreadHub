@@ -7,11 +7,35 @@ import 'package:threadhub/data/repo/auth_repo.dart';
 import 'package:threadhub/data/repo/user_repo.dart';
 import 'package:threadhub/ui/utils/profile_stat.dart';
 
-class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   final auth = AuthRepo();
   final userRepo = UserRepo();
+
+  bool loading = false;
+
+  Future<void> logout() async {
+    setState(() => loading = true);
+
+    try {
+      await auth.logout();
+      if (!mounted) return;
+      context.go("/signin");
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Logout failed: $e")));
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +46,24 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
+      appBar: AppBar(
+        title: const Text("Profile"),
+        actions: [
+          IconButton(
+            onPressed: loading ? null : logout,
+            icon: loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.logout),
+          ),
+        ],
+      ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: userRepo.getUserProfile(userId),
         builder: (context, snapshot) {
@@ -104,6 +145,7 @@ class ProfileScreen extends StatelessWidget {
                     }
 
                     final posts = snapshot.data ?? [];
+
                     if (posts.isEmpty) {
                       return const Center(child: Text("No posts yet"));
                     }
@@ -122,7 +164,6 @@ class ProfileScreen extends StatelessWidget {
                             ).format(createdAt.toDate()),
                           ),
                           onTap: () {
-                            // Convert Firestore map to Post
                             final postObj = Post(
                               docId: post['docId'],
                               authorId: post['authorId'],
@@ -140,10 +181,10 @@ class ProfileScreen extends StatelessWidget {
                               createdAt: createdAt.toDate(),
                             );
 
-                            // Navigate to PostDetailScreen
-                            GoRouter.of(
-                              context,
-                            ).push('/post/${postObj.docId}', extra: postObj);
+                            context.push(
+                              '/post/${postObj.docId}',
+                              extra: postObj,
+                            );
                           },
                         );
                       },

@@ -37,7 +37,7 @@ class AppShell extends StatelessWidget {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Follow'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Discover'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

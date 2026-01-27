@@ -47,4 +47,63 @@ class UserRepo {
           }).toList();
         });
   }
+
+  /// 🔹 Get all users except current user
+  Stream<List<Map<String, dynamic>>> getAllOtherUsers(String currentUserId) {
+    return _users.snapshots().map((snapshot) {
+      return snapshot.docs
+          .where((doc) => doc.id != currentUserId) // 🚫 prevent self
+          .map((doc) {
+            return {
+              'userId': doc.id,
+              'username': doc['username'],
+              'email': doc['email'],
+            };
+          })
+          .toList();
+    });
+  }
+
+  /// 🔹 Check if current user already follows target user
+  Stream<bool> isFollowing(String currentUserId, String targetUserId) {
+    return _followers.doc(currentUserId).snapshots().map((doc) {
+      final following = List<String>.from(doc.data()?['following'] ?? []);
+      return following.contains(targetUserId);
+    });
+  }
+
+  /// 🔹 Follow user
+  Future<void> followUser(String currentUserId, String targetUserId) async {
+    if (currentUserId == targetUserId) return; // 🚫 double safety
+
+    final batch = _firestore.batch();
+
+    final currentUserRef = _followers.doc(currentUserId);
+    final targetUserRef = _followers.doc(targetUserId);
+
+    batch.set(currentUserRef, {
+      'following': FieldValue.arrayUnion([targetUserId]),
+    }, SetOptions(merge: true));
+
+    batch.set(targetUserRef, {
+      'followers': FieldValue.arrayUnion([currentUserId]),
+    }, SetOptions(merge: true));
+
+    await batch.commit();
+  }
+
+  /// 🔹 Unfollow user
+  Future<void> unfollowUser(String currentUserId, String targetUserId) async {
+    final batch = _firestore.batch();
+
+    batch.update(_followers.doc(currentUserId), {
+      'following': FieldValue.arrayRemove([targetUserId]),
+    });
+
+    batch.update(_followers.doc(targetUserId), {
+      'followers': FieldValue.arrayRemove([currentUserId]),
+    });
+
+    await batch.commit();
+  }
 }

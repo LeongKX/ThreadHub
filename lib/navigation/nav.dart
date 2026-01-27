@@ -85,10 +85,10 @@ class Nav {
           name: Screen.home.name,
           builder: (context, state) => const HomeScreen(),
         ),
-        // GoRoute(
-        //   path: "/follow",
-        //   builder: (context, state) => const FollowScreen(),
-        // ),
+        GoRoute(
+          path: "/follow",
+          builder: (context, state) => DiscoverUsersScreen(),
+        ),
         GoRoute(
           path: "/profile",
           name: Screen.profile.name,
