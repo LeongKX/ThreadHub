@@ -37,16 +37,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
       await AuthRepo().signUp(user);
 
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, "/home");
-      }
+      if (!mounted) return;
+      context.go("/signin");
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Signup failed: $e")));
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
-
-    setState(() => loading = false);
   }
 
   @override
