@@ -13,29 +13,25 @@ class AddPostScreen extends StatefulWidget {
 
 class _AddPostScreenState extends State<AddPostScreen> {
   final repo = PostRepo();
+
   String _title = "", _content = "";
   String? _titleError, _contentError;
   bool loading = false;
 
   void _onAddPressed() async {
-    if (_title.isEmpty) {
-      setState(() => _titleError = "Title cannot be empty");
-      return;
-    }
-    if (_content.isEmpty) {
-      setState(() => _contentError = "Content cannot be empty");
-      return;
-    }
+    setState(() {
+      _titleError = _title.isEmpty ? "Title cannot be empty" : null;
+      _contentError = _content.isEmpty ? "Content cannot be empty" : null;
+    });
+
+    if (_titleError != null || _contentError != null) return;
 
     setState(() => loading = true);
 
     try {
       final auth = AuthRepo();
       final authorId = auth.currentUserId;
-
-      if (authorId == null) {
-        throw Exception("User not logged in");
-      }
+      if (authorId == null) throw Exception("User not logged in");
 
       final username = await auth.getCurrentUsername();
 
@@ -50,52 +46,149 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
       if (mounted) context.pop(true);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to add post: $e")));
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
-
-    setState(() => loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Feed")),
-      body: Padding(
+      backgroundColor: const Color(0xFFF2F3F7),
+      appBar: AppBar(
+        title: const Text("Create Post"),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 2,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              onChanged: (v) => setState(() => _title = v),
-              decoration: InputDecoration(
-                hintText: "Enter title",
-                errorText: _titleError,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+        child: Card(
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                /// TITLE FIELD
+                TextField(
+                  onChanged: (v) => setState(() => _title = v),
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    labelText: "Title",
+                    labelStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    hintText: "Enter post title",
+                    hintStyle: const TextStyle(color: Colors.black45),
+                    errorText: _titleError,
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              onChanged: (v) => setState(() => _content = v),
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: "Enter content",
-                errorText: _contentError,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+
+                const SizedBox(height: 16),
+
+                /// CONTENT FIELD
+                TextField(
+                  onChanged: (v) => setState(() => _content = v),
+                  minLines: 6,
+                  maxLines: 6,
+                  textAlignVertical: TextAlignVertical.center,
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    labelText: "Content",
+                    alignLabelWithHint: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 18,
+                    ),
+                    labelStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    hintText: "Write something...",
+                    hintStyle: const TextStyle(color: Colors.black45),
+                    errorText: _contentError,
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+
+                const SizedBox(height: 24),
+
+                /// SUBMIT BUTTON
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: loading ? null : _onAddPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple.shade700,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                    ),
+                    child: loading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            "POST",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: loading ? null : _onAddPressed,
-              child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Add"),
-            ),
-          ],
+          ),
         ),
       ),
     );

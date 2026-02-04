@@ -46,7 +46,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.blueAccent,
         title: const Text("Profile"),
         actions: [
           IconButton(
@@ -74,118 +77,164 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final data = snapshot.data!;
 
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PROFILE HEADER
-              Padding(
-                padding: const EdgeInsets.all(16),
+              // 🔵 HEADER
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Colors.deepPurpleAccent],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        data['username'][0].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       data['username'],
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       data['email'],
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ProfileStat(
-                          label: "Followers",
-                          count: data['followersCount'],
-                        ),
-                        ProfileStat(
-                          label: "Following",
-                          count: data['followingCount'],
-                        ),
-                        StreamBuilder<int>(
-                          stream: userRepo.getPostCount(userId),
-                          builder: (context, snapshot) {
-                            return ProfileStat(
-                              label: "Posts",
-                              count: snapshot.data ?? 0,
-                            );
-                          },
-                        ),
-                      ],
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ],
                 ),
               ),
 
-              const Divider(),
+              const SizedBox(height: 16),
 
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "My Posts",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              // 📊 STATS
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _StatCard(
+                      label: "Followers",
+                      count: data['followersCount'],
+                    ),
+                    _StatCard(
+                      label: "Following",
+                      count: data['followingCount'],
+                    ),
+                    StreamBuilder<int>(
+                      stream: userRepo.getPostCount(userId),
+                      builder: (context, snapshot) {
+                        return _StatCard(
+                          label: "Posts",
+                          count: snapshot.data ?? 0,
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
 
-              // OWN POSTS
+              const SizedBox(height: 20),
+
+              // 🧵 POSTS TITLE
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "My Posts",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // 🧵 POSTS LIST
               Expanded(
                 child: StreamBuilder<List<Map<String, dynamic>>>(
                   stream: userRepo.getOwnPosts(userId),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (snapshot.hasError) {
-                      return Center(child: Text("Error: ${snapshot.error}"));
-                    }
-
-                    final posts = snapshot.data ?? [];
-
+                    final posts = snapshot.data!;
                     if (posts.isEmpty) {
                       return const Center(child: Text("No posts yet"));
                     }
 
                     return ListView.builder(
+                      padding: const EdgeInsets.all(12),
                       itemCount: posts.length,
                       itemBuilder: (context, index) {
                         final post = posts[index];
                         final createdAt = post['createdAt'] as Timestamp;
 
-                        return ListTile(
-                          title: Text(post['title']),
-                          subtitle: Text(
-                            DateFormat(
-                              'dd MMM yyyy',
-                            ).format(createdAt.toDate()),
+                        return Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          onTap: () {
-                            final postObj = Post(
-                              docId: post['docId'],
-                              authorId: post['authorId'],
-                              authorName: post['authorName'],
-                              title: post['title'],
-                              content: post['content'],
-                              upvotes: post['upvotes'] ?? 0,
-                              downvotes: post['downvotes'] ?? 0,
-                              upvotedBy: List<String>.from(
-                                post['upvotedBy'] ?? [],
+                          child: ListTile(
+                            title: Text(
+                              post['title'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
                               ),
-                              downvotedBy: List<String>.from(
-                                post['downvotedBy'] ?? [],
-                              ),
-                              createdAt: createdAt.toDate(),
-                            );
+                            ),
+                            subtitle: Text(
+                              DateFormat(
+                                'dd MMM yyyy',
+                              ).format(createdAt.toDate()),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              final postObj = Post(
+                                docId: post['docId'],
+                                authorId: post['authorId'],
+                                authorName: post['authorName'],
+                                title: post['title'],
+                                content: post['content'],
+                                upvotes: post['upvotes'] ?? 0,
+                                downvotes: post['downvotes'] ?? 0,
+                                upvotedBy: List<String>.from(
+                                  post['upvotedBy'] ?? [],
+                                ),
+                                downvotedBy: List<String>.from(
+                                  post['downvotedBy'] ?? [],
+                                ),
+                                createdAt: createdAt.toDate(),
+                              );
 
-                            context.push(
-                              '/post/${postObj.docId}',
-                              extra: postObj,
-                            );
-                          },
+                              context.push(
+                                '/post/${postObj.docId}',
+                                extra: postObj,
+                              );
+                            },
+                          ),
                         );
                       },
                     );
@@ -195,6 +244,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final int count;
+
+  const _StatCard({required this.label, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 90,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.grey)),
+        ],
       ),
     );
   }

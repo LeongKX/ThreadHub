@@ -59,7 +59,7 @@ import 'package:threadhub/ui/post/post_detail_screen.dart';
 import 'package:threadhub/ui/profile/profile.dart';
 
 class Nav {
-  static const inintial = "/signup";
+  static const inintial = "/signin";
 
   static final routes = [
     /// AUTH (NO BOTTOM NAV)
