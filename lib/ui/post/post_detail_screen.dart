@@ -20,10 +20,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final commentRepo = CommentRepo();
   final TextEditingController _commentCtrl = TextEditingController();
 
+  /// Only the user who wrote the comment can delete it
   bool canDelete(Comment comment, String currentUserId) {
-    final now = DateTime.now();
-    return comment.authorId == currentUserId &&
-        now.difference(comment.createdAt).inMinutes <= 5;
+    return comment.authorId == currentUserId;
   }
 
   Future<void> _confirmAndDeleteComment(Post post, Comment c) async {
@@ -48,6 +47,94 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (ok == true) {
       await commentRepo.deleteComment(post.docId, c.docId);
     }
+  }
+
+  Future<void> _confirmAndDeletePost(Post post) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Delete Post?"),
+        content: const Text("This will permanently delete the post."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      await postRepo.deletePost(post.docId);
+      if (mounted) Navigator.pop(context);
+    }
+  }
+
+  Future<void> _showEditPostDialog(Post post) async {
+    final titleCtrl = TextEditingController(text: post.title);
+    final contentCtrl = TextEditingController(text: post.content);
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Post"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(labelText: "Title"),
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: contentCtrl,
+              decoration: const InputDecoration(labelText: "Content"),
+              minLines: 3,
+              maxLines: 6,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+
+    if (saved == true) {
+      final newTitle = titleCtrl.text.trim();
+      final newContent = contentCtrl.text.trim();
+      if (newTitle.isEmpty || newContent.isEmpty) return;
+
+      final updated = Post(
+        docId: post.docId,
+        title: newTitle,
+        content: newContent,
+        authorId: post.authorId,
+        authorName: post.authorName,
+        createdAt: post.createdAt,
+        upvotes: post.upvotes,
+        downvotes: post.downvotes,
+        upvotedBy: post.upvotedBy,
+        downvotedBy: post.downvotedBy,
+      );
+
+      await postRepo.updatePost(updated);
+    }
+
+    titleCtrl.dispose();
+    contentCtrl.dispose();
   }
 
   Widget _buildCommentInput(String? currentUserId, Post post) {
@@ -118,6 +205,36 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         elevation: 0,
         backgroundColor: Colors.deepPurple,
         title: const Text("Post"),
+        actions: [
+          // Edit/Delete only for the post owner
+          StreamBuilder<Post?>(
+            stream: postRepo.getPostByIdStream(widget.post.docId),
+            builder: (context, snapshot) {
+              final post = snapshot.data;
+              final isOwner =
+                  post != null &&
+                  currentUserId != null &&
+                  post.authorId == currentUserId;
+
+              if (!isOwner) return const SizedBox.shrink();
+
+              return Row(
+                children: [
+                  IconButton(
+                    tooltip: "Edit",
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => _showEditPostDialog(post!),
+                  ),
+                  IconButton(
+                    tooltip: "Delete",
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _confirmAndDeletePost(post!),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<Post?>(
         stream: postRepo.getPostByIdStream(widget.post.docId),
@@ -279,7 +396,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
                               final showDelete =
                                   currentUserId != null &&
-                                  isMe &&
                                   canDelete(c, currentUserId);
 
                               return Align(
@@ -290,7 +406,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    if (showDelete)
+                                    // For other people's comments, show icon on the left (if it applies)
+                                    if (!isMe && showDelete)
                                       IconButton(
                                         padding: EdgeInsets.zero,
                                         visualDensity: VisualDensity.compact,
@@ -376,6 +493,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                         ],
                                       ),
                                     ),
+
+                                    // For my comments, show icon on the right
+                                    if (isMe && showDelete)
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        iconSize: 18,
+                                        tooltip: "Delete",
+                                        onPressed: () =>
+                                            _confirmAndDeleteComment(post, c),
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.redAccent,
+                                        ),
+                                      ),
                                   ],
                                 ),
                               );
