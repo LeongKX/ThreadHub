@@ -176,7 +176,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         postId: post.docId,
                         content: text,
                         authorId: currentUserId,
-                        authorName: username ?? "Unknown",
+                        authorName: username,
                       );
 
                       await commentRepo.addComment(comment);
@@ -223,12 +223,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   IconButton(
                     tooltip: "Edit",
                     icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => _showEditPostDialog(post!),
+                    onPressed: () => _showEditPostDialog(post),
                   ),
                   IconButton(
                     tooltip: "Delete",
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _confirmAndDeletePost(post!),
+                    onPressed: () => _confirmAndDeletePost(post),
                   ),
                 ],
               );

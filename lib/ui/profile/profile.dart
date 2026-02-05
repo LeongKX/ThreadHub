@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:threadhub/data/model/post.dart';
 import 'package:threadhub/data/repo/auth_repo.dart';
 import 'package:threadhub/data/repo/user_repo.dart';
-import 'package:threadhub/ui/utils/profile_stat.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

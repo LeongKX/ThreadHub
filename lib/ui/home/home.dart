@@ -243,9 +243,7 @@ class _VoteButton extends StatelessWidget {
   }
 }
 
-/// ===============================
 /// EXPANDABLE TEXT
-/// ===============================
 class ExpandableText extends StatefulWidget {
   final String text;
 

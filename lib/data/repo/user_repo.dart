@@ -52,7 +52,7 @@ class UserRepo {
   Stream<List<Map<String, dynamic>>> getAllOtherUsers(String currentUserId) {
     return _users.snapshots().map((snapshot) {
       return snapshot.docs
-          .where((doc) => doc.id != currentUserId) // 🚫 prevent self
+          .where((doc) => doc.id != currentUserId) //  prevent self
           .map((doc) {
             return {
               'userId': doc.id,
@@ -74,7 +74,7 @@ class UserRepo {
 
   /// 🔹 Follow user
   Future<void> followUser(String currentUserId, String targetUserId) async {
-    if (currentUserId == targetUserId) return; // 🚫 double safety
+    if (currentUserId == targetUserId) return; //  double safety
 
     final batch = _firestore.batch();
 
